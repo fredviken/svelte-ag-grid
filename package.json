@@ -4,11 +4,11 @@
 	"description": "A reactive Svelte 5 wrapper for AG Grid with full TypeScript support",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/fredrikviken/svelte-ag-grid.git"
+		"url": "git+https://github.com/fredviken/svelte-ag-grid.git"
 	},
-	"homepage": "https://github.com/fredrikviken/svelte-ag-grid#readme",
+	"homepage": "https://github.com/fredviken/svelte-ag-grid#readme",
 	"bugs": {
-		"url": "https://github.com/fredrikviken/svelte-ag-grid/issues"
+		"url": "https://github.com/fredviken/svelte-ag-grid/issues"
 	},
 	"scripts": {
 		"dev": "vite dev",
