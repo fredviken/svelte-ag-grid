@@ -66,5 +66,10 @@
 		"onlyBuiltDependencies": [
 			"esbuild"
 		]
+	},
+	"dependencies": {
+		"@ag-grid-community/styles": "^32.3.5",
+		"ag-grid-community": "^33.3.2",
+		"runed": "^0.29.0"
 	}
 }
