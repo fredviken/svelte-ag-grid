@@ -1,58 +1,139 @@
-# Svelte library
+# svelte-ag-grid
 
-Everything you need to build a Svelte library, powered by [`sv`](https://npmjs.com/package/sv).
+A reactive Svelte 5 wrapper for AG Grid with full TypeScript support.
 
-Read more about creating a library [in the docs](https://svelte.dev/docs/kit/packaging).
+## Features
 
-## Creating a project
+- Simple, reactive API
+- Fully typed using AG Grid's types
+- Reactive updates for rowData, columnDefs, and more
+- Minimal wrapper - AG Grid does the heavy lifting
+- Flexible module system support
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Installation
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+npm install svelte-ag-grid ag-grid-community
 ```
-
-Everything inside `src/lib` is part of your library, everything inside `src/routes` can be used as a showcase or preview app.
-
-## Building
-
-To build your library:
 
 ```bash
-npm run package
+pnpm add svelte-ag-grid ag-grid-community
 ```
-
-To create a production version of your showcase app:
 
 ```bash
-npm run build
+bun add svelte-ag-grid ag-grid-community
 ```
 
-You can preview the production build with `npm run preview`.
+## Usage
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+### Basic Setup
 
-## Publishing
+```html
+<script lang="ts">
+	import { AgGrid, ModuleRegistry, AllCommunityModule } from 'svelte-ag-grid';
+	import type { GridOptions } from 'svelte-ag-grid';
 
-Go into the `package.json` and give your package the desired name through the `"name"` option. Also consider adding a `"license"` field and point it to a `LICENSE` file which you can create from a template (one popular option is the [MIT license](https://opensource.org/license/mit/)).
+	// Register AG Grid modules (required)
+	ModuleRegistry.registerModules([AllCommunityModule]);
 
-To publish your library to [npm](https://www.npmjs.com):
+	const gridOptions: GridOptions = {
+		rowData: [
+			{ make: 'Toyota', model: 'Celica', price: 35000 },
+			{ make: 'Ford', model: 'Mondeo', price: 32000 },
+			{ make: 'Porsche', model: 'Boxster', price: 72000 }
+		],
+		columnDefs: [{ field: 'make' }, { field: 'model' }, { field: 'price' }]
+	};
+</script>
 
-```bash
-npm publish
+<div style="height: 400px;">
+	<AgGrid options={gridOptions} />
+</div>
 ```
+
+### Module Registration
+
+AG Grid uses a modular architecture. You have several options:
+
+#### Option 1: Register All Community Features (Simplest)
+
+```javascript
+import { ModuleRegistry, AllCommunityModule } from 'svelte-ag-grid';
+ModuleRegistry.registerModules([AllCommunityModule]);
+```
+
+#### Option 2: Register Specific Modules (Smaller Bundle)
+
+```javascript
+import { ModuleRegistry } from 'svelte-ag-grid';
+import { ClientSideRowModelModule } from 'ag-grid-community';
+import { CsvExportModule } from 'ag-grid-community';
+
+ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
+```
+
+#### Option 3: Per-Grid Modules
+
+```html
+<script>
+	import { AgGrid } from 'svelte-ag-grid';
+	import { ClientSideRowModelModule, CsvExportModule } from 'ag-grid-community';
+	import type { GridParams } from 'svelte-ag-grid';
+
+	const params: GridParams = {
+		modules: [ClientSideRowModelModule, CsvExportModule]
+	};
+</script>
+
+<AgGrid options={gridOptions} {params} />
+```
+
+### Reactive Updates
+
+The component automatically watches and updates these properties:
+
+- `rowData`
+- `columnDefs`
+- `defaultColDef`
+- `pagination`
+- `paginationPageSize`
+
+```html
+<script lang="ts">
+	let rowData = $state([...]);
+
+	// This will automatically update the grid
+	function addRow() {
+		rowData = [...rowData, { make: 'BMW', model: 'M3', price: 65000 }];
+	}
+</script>
+```
+
+### Component Props
+
+| Prop      | Type          | Default | Description                      |
+| --------- | ------------- | ------- | -------------------------------- |
+| `options` | `GridOptions` | required | AG Grid configuration object     |
+| `params`  | `GridParams`  | `{}`    | Grid creation parameters         |
+
+## TypeScript
+
+Full TypeScript support is included. The component uses AG Grid's types directly:
+
+```typescript
+import type { GridOptions, ColDef } from 'svelte-ag-grid';
+
+const columnDefs: ColDef[] = [
+	{ field: 'name', filter: true },
+	{ field: 'age', sort: 'asc' }
+];
+
+const gridOptions: GridOptions = {
+	columnDefs
+	// Full intellisense for all AG Grid options
+};
+```
+
+## License
+
+MIT
