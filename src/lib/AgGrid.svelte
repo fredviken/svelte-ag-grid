@@ -1,26 +1,25 @@
-<script lang="ts">
+<script lang="ts" generics="T">
 	import { onMount, onDestroy } from 'svelte';
 	import { watch } from 'runed';
 	import { createGrid, type GridApi, type GridOptions, type GridParams } from 'ag-grid-community';
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	interface Props extends HTMLAttributes<HTMLDivElement> {
-		options: GridOptions;
+		options: GridOptions<T>;
 		params?: GridParams;
-		api?: GridApi;
+		api?: GridApi<T>;
 	}
 
 	let { options, params = {}, api = $bindable(), ...rest }: Props = $props();
 
 	let gridDiv: HTMLDivElement;
-	let gridApi: GridApi | undefined;
 
 	// Watch for changes to specific reactive fields
 	watch(
 		() => options.rowData,
 		(newRowData) => {
-			if (gridApi && newRowData !== undefined) {
-				gridApi.setGridOption('rowData', newRowData);
+			if (api && newRowData !== undefined) {
+				api.setGridOption('rowData', newRowData);
 			}
 		}
 	);
@@ -28,8 +27,8 @@
 	watch(
 		() => options.columnDefs,
 		(newColumnDefs) => {
-			if (gridApi && newColumnDefs !== undefined) {
-				gridApi.setGridOption('columnDefs', newColumnDefs);
+			if (api && newColumnDefs !== undefined) {
+				api.setGridOption('columnDefs', newColumnDefs);
 			}
 		}
 	);
@@ -37,8 +36,8 @@
 	watch(
 		() => options.defaultColDef,
 		(newDefaultColDef) => {
-			if (gridApi && newDefaultColDef !== undefined) {
-				gridApi.setGridOption('defaultColDef', newDefaultColDef);
+			if (api && newDefaultColDef !== undefined) {
+				api.setGridOption('defaultColDef', newDefaultColDef);
 			}
 		}
 	);
@@ -46,8 +45,8 @@
 	watch(
 		() => options.pagination,
 		(newPagination) => {
-			if (gridApi && newPagination !== undefined) {
-				gridApi.setGridOption('pagination', newPagination);
+			if (api && newPagination !== undefined) {
+				api.setGridOption('pagination', newPagination);
 			}
 		}
 	);
@@ -55,20 +54,19 @@
 	watch(
 		() => options.paginationPageSize,
 		(newPageSize) => {
-			if (gridApi && newPageSize !== undefined) {
-				gridApi.setGridOption('paginationPageSize', newPageSize);
+			if (api && newPageSize !== undefined) {
+				api.setGridOption('paginationPageSize', newPageSize);
 			}
 		}
 	);
 
 	onMount(() => {
-		gridApi = createGrid(gridDiv, options, params);
-		api = gridApi;
+		api = createGrid(gridDiv, options, params);
 	});
 
 	onDestroy(() => {
-		if (gridApi) {
-			gridApi.destroy();
+		if (api) {
+			api.destroy();
 		}
 		api = undefined;
 	});
