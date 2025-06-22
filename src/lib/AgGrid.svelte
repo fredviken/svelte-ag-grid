@@ -18,7 +18,6 @@
 	let {
 		options,
 		params = {},
-		class: className = '',
 		...rest
 	}: Props = $props();
 
@@ -82,4 +81,4 @@
 	});
 </script>
 
-<div bind:this={gridDiv} class="{className}" style="height: 100%; width: 100%;" {...rest}></div>
+<div bind:this={gridDiv} {...rest}></div>
