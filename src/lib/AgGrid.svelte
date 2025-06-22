@@ -8,15 +8,12 @@
 		type Module,
 		type GridParams
 	} from 'ag-grid-community';
-	import '@ag-grid-community/styles/ag-grid.css';
-	import '@ag-grid-community/styles/ag-theme-quartz.css';
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	interface Props extends HTMLAttributes<HTMLDivElement> {
 		options: GridOptions;
 		modules?: Module[];
 		gridParams?: GridParams;
-		theme?: string;
 	}
 
 	let {
@@ -24,7 +21,6 @@
 		modules,
 		gridParams,
 		class: className = '',
-		theme = 'ag-theme-quartz',
 		...rest
 	}: Props = $props();
 
@@ -94,4 +90,4 @@
 	});
 </script>
 
-<div bind:this={gridDiv} class="{theme} {className}" {...rest}></div>
+<div bind:this={gridDiv} class="{className}" style="height: 100%; width: 100%;" {...rest}></div>
