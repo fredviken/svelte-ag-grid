@@ -1,6 +1,6 @@
 # svelte-ag-grid
 
-A reactive Svelte 5 wrapper for AG Grid with full TypeScript support.
+A reactive Svelte 5 wrapper for [AG Grid](https://www.ag-grid.com/) with full TypeScript support.
 
 ## Features
 
@@ -47,7 +47,7 @@ bun add svelte-ag-grid ag-grid-community
 </script>
 
 <div style="height: 400px;">
-	<AgGrid options="{gridOptions}" />
+	<AgGrid options={gridOptions} />
 </div>
 ```
 
@@ -85,7 +85,7 @@ ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
 	};
 </script>
 
-<AgGrid options="{gridOptions}" {params} />
+<AgGrid options={gridOptions} {params} />
 ```
 
 ### Reactive Updates
