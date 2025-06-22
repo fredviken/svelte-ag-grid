@@ -1,20 +1,16 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { watch } from 'runed';
-	import {
-		createGrid,
-		type GridApi,
-		type GridOptions,
-		type GridParams
-	} from 'ag-grid-community';
+	import { createGrid, type GridApi, type GridOptions, type GridParams } from 'ag-grid-community';
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	interface Props extends HTMLAttributes<HTMLDivElement> {
 		options: GridOptions;
 		params?: GridParams;
+		api?: GridApi;
 	}
 
-	let { options, params = {}, ...rest }: Props = $props();
+	let { options, params = {}, api = $bindable(), ...rest }: Props = $props();
 
 	let gridDiv: HTMLDivElement;
 	let gridApi: GridApi | undefined;
@@ -67,12 +63,14 @@
 
 	onMount(() => {
 		gridApi = createGrid(gridDiv, options, params);
+		api = gridApi;
 	});
 
 	onDestroy(() => {
 		if (gridApi) {
 			gridApi.destroy();
 		}
+		api = undefined;
 	});
 </script>
 

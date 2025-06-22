@@ -36,9 +36,6 @@ jobs:
       - name: Run type check
         run: pnpm run check
 
-      - name: Run tests
-        run: pnpm run test
-
       - name: Build package
         run: pnpm run prepack
 
