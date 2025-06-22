@@ -12,14 +12,12 @@
 
 	interface Props extends HTMLAttributes<HTMLDivElement> {
 		options: GridOptions;
-		modules?: Module[];
-		gridParams?: GridParams;
+		params?: GridParams;
 	}
 
 	let {
 		options,
-		modules,
-		gridParams,
+		params = {},
 		class: className = '',
 		...rest
 	}: Props = $props();
@@ -74,13 +72,7 @@
 	);
 
 	onMount(() => {
-		if (gridParams) {
-			gridApi = createGrid(gridDiv, options, gridParams);
-		} else if (modules) {
-			gridApi = createGrid(gridDiv, options, { modules });
-		} else {
-			gridApi = createGrid(gridDiv, options);
-		}
+		gridApi = createGrid(gridDiv, options, params);
 	});
 
 	onDestroy(() => {
