@@ -22,6 +22,7 @@
 
 	let gridOptions: GridOptions = $derived({
 		rowData: people,
+		domLayout: 'autoHeight',
 		columnDefs,
 		defaultColDef: {
 			flex: 1,
