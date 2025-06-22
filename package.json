@@ -1,6 +1,15 @@
 {
 	"name": "svelte-ag-grid",
-	"version": "0.0.1",
+	"version": "0.1.0",
+	"description": "A reactive Svelte 5 wrapper for AG Grid with full TypeScript support",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/fredrikviken/svelte-ag-grid.git"
+	},
+	"homepage": "https://github.com/fredrikviken/svelte-ag-grid#readme",
+	"bugs": {
+		"url": "https://github.com/fredrikviken/svelte-ag-grid/issues"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run prepack",
@@ -60,7 +69,13 @@
 		"vitest-browser-svelte": "^0.1.0"
 	},
 	"keywords": [
-		"svelte"
+		"svelte",
+		"svelte5",
+		"ag-grid",
+		"data-grid",
+		"table",
+		"reactive",
+		"typescript"
 	],
 	"pnpm": {
 		"onlyBuiltDependencies": [
