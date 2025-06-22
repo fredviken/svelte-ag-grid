@@ -5,7 +5,6 @@
 		createGrid,
 		type GridApi,
 		type GridOptions,
-		type Module,
 		type GridParams
 	} from 'ag-grid-community';
 	import type { HTMLAttributes } from 'svelte/elements';
