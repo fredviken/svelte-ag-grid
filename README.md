@@ -134,6 +134,11 @@ const gridOptions: GridOptions = {
 };
 ```
 
+## AG Grid Documentation
+
+For full AG Grid configuration options and features, see the official documentation:
+https://www.ag-grid.com/javascript-data-grid/
+
 ## License
 
 MIT
