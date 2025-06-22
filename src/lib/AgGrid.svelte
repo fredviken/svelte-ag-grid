@@ -15,11 +15,7 @@
 		params?: GridParams;
 	}
 
-	let {
-		options,
-		params = {},
-		...rest
-	}: Props = $props();
+	let { options, params = {}, ...rest }: Props = $props();
 
 	let gridDiv: HTMLDivElement;
 	let gridApi: GridApi | undefined;

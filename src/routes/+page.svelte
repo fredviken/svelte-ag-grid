@@ -78,7 +78,11 @@
 
 	<div class="stats">
 		<span>Total people: {people.length}</span>
-		<span>Average score: {Math.round(people.reduce((sum, p) => sum + p.score, 0) / people.length)}</span>
+		<span
+			>Average score: {Math.round(
+				people.reduce((sum, p) => sum + p.score, 0) / people.length
+			)}</span
+		>
 	</div>
 
 	<div class="grid-container">

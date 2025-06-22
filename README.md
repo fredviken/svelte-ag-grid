@@ -47,7 +47,7 @@ bun add svelte-ag-grid ag-grid-community
 </script>
 
 <div style="height: 400px;">
-	<AgGrid options={gridOptions} />
+	<AgGrid options="{gridOptions}" />
 </div>
 ```
 
@@ -85,7 +85,7 @@ ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
 	};
 </script>
 
-<AgGrid options={gridOptions} {params} />
+<AgGrid options="{gridOptions}" {params} />
 ```
 
 ### Reactive Updates
@@ -111,10 +111,10 @@ The component automatically watches and updates these properties:
 
 ### Component Props
 
-| Prop      | Type          | Default | Description                      |
-| --------- | ------------- | ------- | -------------------------------- |
-| `options` | `GridOptions` | required | AG Grid configuration object     |
-| `params`  | `GridParams`  | `{}`    | Grid creation parameters         |
+| Prop      | Type          | Default  | Description                  |
+| --------- | ------------- | -------- | ---------------------------- |
+| `options` | `GridOptions` | required | AG Grid configuration object |
+| `params`  | `GridParams`  | `{}`     | Grid creation parameters     |
 
 ## TypeScript
 
