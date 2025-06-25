@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AgGrid } from '$lib/index.js';
+	import { AgGrid, makeSvelteSnippetRenderer } from '$lib/index.js';
 	import type { GridOptions } from 'ag-grid-community';
 	import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 	import { onMount, onDestroy } from 'svelte';
@@ -17,7 +17,13 @@
 	const columnDefs = [
 		{ field: 'name', headerName: 'Name' },
 		{ field: 'age', headerName: 'Age' },
-		{ field: 'score', headerName: 'Score' }
+		{
+			field: 'score',
+			headerName: 'Score',
+			cellRenderer: makeSvelteSnippetRenderer(scoreCell, (params) => ({
+				score: params.value
+			}))
+		}
 	];
 
 	let gridOptions: GridOptions = $derived({
@@ -71,6 +77,20 @@
 		if (interval) clearInterval(interval);
 	});
 </script>
+
+<!-- Svelte snippet for score cell renderer -->
+{#snippet scoreCell(params: { score: number })}
+	<div class="score-cell">
+		<span
+			class="score-value {params.score >= 90 ? 'excellent' : params.score >= 80 ? 'good' : 'okay'}"
+		>
+			{params.score}
+		</span>
+		<div class="score-bar">
+			<div class="score-fill" style="width: {params.score}%"></div>
+		</div>
+	</div>
+{/snippet}
 
 <div class="container">
 	<h1>Svelte AG Grid Demo</h1>
@@ -146,5 +166,44 @@
 	button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	/* Score cell styles */
+	:global(.score-cell) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.25rem 0;
+	}
+
+	:global(.score-value) {
+		font-weight: 600;
+		min-width: 2rem;
+	}
+
+	:global(.score-value.excellent) {
+		color: #16a34a;
+	}
+
+	:global(.score-value.good) {
+		color: #2563eb;
+	}
+
+	:global(.score-value.okay) {
+		color: #ea580c;
+	}
+
+	:global(.score-bar) {
+		flex: 1;
+		height: 4px;
+		background-color: #e5e7eb;
+		border-radius: 2px;
+		overflow: hidden;
+	}
+
+	:global(.score-fill) {
+		height: 100%;
+		background: linear-gradient(90deg, #ea580c 0%, #2563eb 50%, #16a34a 100%);
+		transition: width 0.3s ease;
 	}
 </style>

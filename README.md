@@ -47,7 +47,7 @@ bun add svelte-ag-grid ag-grid-community
 </script>
 
 <div style="height: 400px;">
-	<AgGrid options={gridOptions} />
+	<AgGrid options="{gridOptions}" />
 </div>
 ```
 
@@ -85,7 +85,7 @@ ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
 	};
 </script>
 
-<AgGrid options={gridOptions} {params} />
+<AgGrid options="{gridOptions}" {params} />
 ```
 
 ### Reactive Updates
@@ -116,21 +116,135 @@ The component automatically watches and updates these properties:
 | `options` | `GridOptions` | required | AG Grid configuration object |
 | `params`  | `GridParams`  | `{}`     | Grid creation parameters     |
 
-## TypeScript
+## Svelte Cell Renderers
 
-Full TypeScript support is included. The component uses AG Grid's types directly:
+This library provides two ways to render Svelte components in AG Grid cells:
+
+### Component Renderer
+
+Use `makeSvelteCellRenderer` to render a Svelte component in grid cells:
+
+```html
+<script lang="ts">
+	import { AgGrid, makeSvelteCellRenderer } from 'svelte-ag-grid';
+	import MyButton from './MyButton.svelte';
+
+	interface RowData {
+		name: string;
+		value: number;
+	}
+
+	// Create a cell renderer that transforms AG Grid params to component props
+	const ButtonRenderer = makeSvelteCellRenderer(MyButton, (params) => ({
+		label: params.value,
+		onClick: () => console.log('Clicked:', params.data)
+	}));
+
+	const gridOptions = {
+		columnDefs: [
+			{ field: 'name' },
+			{
+				field: 'value',
+				cellRenderer: ButtonRenderer
+			}
+		],
+		rowData: [
+			{ name: 'Item 1', value: 100 },
+			{ name: 'Item 2', value: 200 }
+		]
+	};
+</script>
+```
+
+### Snippet Renderer
+
+Use `makeSvelteSnippetRenderer` to render Svelte snippets defined in your markup:
+
+```html
+<script lang="ts">
+	import { AgGrid, makeSvelteSnippetRenderer } from 'svelte-ag-grid';
+
+	const gridOptions = {
+		columnDefs: [
+			{ field: 'name' },
+			{ field: 'email' },
+			{
+				field: 'price',
+				cellRenderer: makeSvelteSnippetRenderer(priceCell, (params) => ({
+					price: params.value
+				}))
+			},
+			{
+				field: 'status',
+				cellRenderer: makeSvelteSnippetRenderer(statusCell, (params) => ({
+					status: params.value
+				}))
+			}
+		],
+		rowData: [
+			{ name: 'John Doe', email: 'john@example.com', price: 99.99, status: 'active' },
+			{ name: 'Jane Smith', email: 'jane@example.com', price: 149.99, status: 'inactive' }
+		]
+	};
+</script>
+
+<!-- Define snippets in your markup -->
+{#snippet priceCell(params: { price: number })}
+<span class="price {params.price > 100 ? 'expensive' : 'affordable'}">
+	${params.price.toFixed(2)}
+</span>
+{/snippet} {#snippet statusCell(params: { status: string })}
+<span class="status-badge {params.status}"> {params.status} </span>
+{/snippet}
+
+<div style="height: 400px;">
+	<AgGrid options="{gridOptions}" />
+</div>
+
+<style>
+	:global(.price.expensive) {
+		color: #dc2626;
+		font-weight: bold;
+	}
+
+	:global(.price.affordable) {
+		color: #16a34a;
+	}
+
+	:global(.status-badge) {
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.25rem;
+		font-size: 0.75rem;
+		text-transform: uppercase;
+	}
+
+	:global(.status-badge.active) {
+		background-color: #dcfce7;
+		color: #166534;
+	}
+
+	:global(.status-badge.inactive) {
+		background-color: #fef2f2;
+		color: #991b1b;
+	}
+</style>
+```
+
+### Props Transformer
+
+Both renderers require a props transformer function that converts AG Grid's `ICellRendererParams` into the props your component or snippet expects:
 
 ```typescript
-import type { GridOptions, ColDef } from 'svelte-ag-grid';
-
-const columnDefs: ColDef[] = [
-	{ field: 'name', filter: true },
-	{ field: 'age', sort: 'asc' }
-];
-
-const gridOptions: GridOptions = {
-	columnDefs
-	// Full intellisense for all AG Grid options
+// The transformer receives AG Grid cell parameters
+(params: ICellRendererParams) => {
+	return {
+		// Transform to your component's expected props
+		value: params.value,
+		data: params.data,
+		isSelected: params.node.isSelected(),
+		// Add any custom logic
+		displayValue: params.value > 100 ? 'High' : 'Low'
+	};
 };
 ```
 
