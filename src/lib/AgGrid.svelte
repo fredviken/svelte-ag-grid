@@ -1,5 +1,5 @@
 <script lang="ts" generics="TData">
-	import { onMount, onDestroy, setContext, type Snippet } from 'svelte';
+	import { onMount, onDestroy, type Snippet } from 'svelte';
 	import { watch } from 'runed';
 	import {
 		createGrid,

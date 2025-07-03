@@ -1,6 +1,6 @@
 {
 	"name": "svelte-ag-grid",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"description": "A reactive Svelte 5 wrapper for AG Grid with full TypeScript support",
 	"repository": {
 		"type": "git",

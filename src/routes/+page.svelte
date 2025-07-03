@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AgGrid, makeSvelteSnippetRenderer } from '$lib/index.js';
+	import { AgGrid } from '$lib/index.js';
 	import type { GridOptions } from 'ag-grid-community';
 	import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 	import { onMount, onDestroy } from 'svelte';
