@@ -47,7 +47,7 @@ bun add svelte-ag-grid ag-grid-community
 </script>
 
 <div style="height: 400px;">
-	<AgGrid options="{gridOptions}" />
+	<AgGrid options={gridOptions} />
 </div>
 ```
 
@@ -85,7 +85,7 @@ ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
 	};
 </script>
 
-<AgGrid options="{gridOptions}" {params} />
+<AgGrid options={gridOptions} {params} />
 ```
 
 ### Reactive Updates
@@ -118,97 +118,88 @@ The component automatically watches and updates these properties:
 
 ## Svelte Cell Renderers
 
-This library provides two ways to render Svelte components in AG Grid cells:
+This library provides three ways to create custom cell renderers:
 
-### Component Renderer
+### 🎯 Inline Snippets (Recommended)
 
-Use `makeSvelteCellRenderer` to render a Svelte component in grid cells:
+The easiest and most powerful way is to use **inline snippets** directly inside the `<AgGrid>` component. Simply define snippets with names matching your column field names:
 
 ```html
 <script lang="ts">
-	import { AgGrid, makeSvelteCellRenderer } from 'svelte-ag-grid';
-	import MyButton from './MyButton.svelte';
+	import { AgGrid } from 'svelte-ag-grid';
+	import type { GridOptions } from 'ag-grid-community';
 
-	interface RowData {
+	interface Person {
 		name: string;
-		value: number;
+		age: number;
+		score: number;
+		status: 'active' | 'inactive';
 	}
 
-	// Create a cell renderer that transforms AG Grid params to component props
-	const ButtonRenderer = makeSvelteCellRenderer(MyButton, (params) => ({
-		label: params.value,
-		onClick: () => console.log('Clicked:', params.data)
-	}));
-
-	const gridOptions = {
+	const gridOptions: GridOptions<Person> = {
 		columnDefs: [
-			{ field: 'name' },
-			{
-				field: 'value',
-				cellRenderer: ButtonRenderer
-			}
+			{ field: 'name', headerName: 'Name' },
+			{ field: 'age', headerName: 'Age' },
+			{ field: 'score', headerName: 'Score' }, // Will use score snippet
+			{ field: 'status', headerName: 'Status' } // Will use status snippet
 		],
 		rowData: [
-			{ name: 'Item 1', value: 100 },
-			{ name: 'Item 2', value: 200 }
+			{ name: 'Alice', age: 25, score: 95, status: 'active' },
+			{ name: 'Bob', age: 30, score: 87, status: 'inactive' },
+			{ name: 'Charlie', age: 35, score: 92, status: 'active' }
 		]
 	};
 </script>
-```
-
-### Snippet Renderer
-
-Use `makeSvelteSnippetRenderer` to render Svelte snippets defined in your markup:
-
-```html
-<script lang="ts">
-	import { AgGrid, makeSvelteSnippetRenderer } from 'svelte-ag-grid';
-
-	const gridOptions = {
-		columnDefs: [
-			{ field: 'name' },
-			{ field: 'email' },
-			{
-				field: 'price',
-				cellRenderer: makeSvelteSnippetRenderer(priceCell, (params) => ({
-					price: params.value
-				}))
-			},
-			{
-				field: 'status',
-				cellRenderer: makeSvelteSnippetRenderer(statusCell, (params) => ({
-					status: params.value
-				}))
-			}
-		],
-		rowData: [
-			{ name: 'John Doe', email: 'john@example.com', price: 99.99, status: 'active' },
-			{ name: 'Jane Smith', email: 'jane@example.com', price: 149.99, status: 'inactive' }
-		]
-	};
-</script>
-
-<!-- Define snippets in your markup -->
-{#snippet priceCell(params: { price: number })}
-<span class="price {params.price > 100 ? 'expensive' : 'affordable'}">
-	${params.price.toFixed(2)}
-</span>
-{/snippet} {#snippet statusCell(params: { status: string })}
-<span class="status-badge {params.status}"> {params.status} </span>
-{/snippet}
 
 <div style="height: 400px;">
-	<AgGrid options="{gridOptions}" />
+	<AgGrid options={gridOptions}>
+		<!-- Snippet name must match column field name -->
+		{#snippet score(props)}
+		<div class="score-cell">
+			<span
+				class="score-value {props.params.value >= 90 ? 'excellent' : props.params.value >= 80 ? 'good' : 'okay'}"
+			>
+				{props.params.value}
+			</span>
+			<div class="score-bar">
+				<div class="score-fill" style="width: {props.params.value}%"></div>
+			</div>
+		</div>
+		{/snippet} {#snippet status(props)}
+		<span class="status-badge {props.params.value}"> {props.params.value} </span>
+		{/snippet}
+	</AgGrid>
 </div>
 
 <style>
-	:global(.price.expensive) {
-		color: #dc2626;
-		font-weight: bold;
+	:global(.score-cell) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
-	:global(.price.affordable) {
+	:global(.score-value.excellent) {
 		color: #16a34a;
+	}
+	:global(.score-value.good) {
+		color: #2563eb;
+	}
+	:global(.score-value.okay) {
+		color: #ea580c;
+	}
+
+	:global(.score-bar) {
+		flex: 1;
+		height: 4px;
+		background-color: #e5e7eb;
+		border-radius: 2px;
+		overflow: hidden;
+	}
+
+	:global(.score-fill) {
+		height: 100%;
+		background: linear-gradient(90deg, #ea580c 0%, #2563eb 50%, #16a34a 100%);
+		transition: width 0.3s ease;
 	}
 
 	:global(.status-badge) {
@@ -228,6 +219,85 @@ Use `makeSvelteSnippetRenderer` to render Svelte snippets defined in your markup
 		color: #991b1b;
 	}
 </style>
+```
+
+**Benefits of inline snippets:**
+
+- ✅ Fully type-safe - snippet names must match field names
+- ✅ No manual cell renderer setup required
+- ✅ Clean, declarative syntax
+- ✅ Automatic integration with AG Grid
+
+**Important Notes:**
+
+- Snippet names must match your column field names exactly
+- Field names that conflict with component props (`options`, `params`, `api`) cannot be used as snippet names
+- Snippets receive `props.params` containing AG Grid's `ICellRendererParams`
+
+### External Snippet Renderer
+
+Use `makeSvelteSnippetRenderer` for snippets defined outside the grid:
+
+```html
+<script lang="ts">
+	import { AgGrid, makeSvelteSnippetRenderer } from 'svelte-ag-grid';
+
+	const gridOptions = {
+		columnDefs: [
+			{ field: 'name' },
+			{
+				field: 'price',
+				cellRenderer: makeSvelteSnippetRenderer(priceCell, (params) => ({
+					price: params.value
+				}))
+			}
+		],
+		rowData: [
+			{ name: 'Product A', price: 99.99 },
+			{ name: 'Product B', price: 149.99 }
+		]
+	};
+</script>
+
+{#snippet priceCell(params: { price: number })}
+<span class="price {params.price > 100 ? 'expensive' : 'affordable'}">
+	${params.price.toFixed(2)}
+</span>
+{/snippet}
+
+<AgGrid options={gridOptions} />
+```
+
+### Component Renderer
+
+Use `makeSvelteCellRenderer` for reusable Svelte components:
+
+```html
+<script lang="ts">
+	import { AgGrid, makeSvelteCellRenderer } from 'svelte-ag-grid';
+	import MyButton from './MyButton.svelte';
+
+	const ButtonRenderer = makeSvelteCellRenderer(MyButton, (params) => ({
+		label: params.value,
+		onclick: () => console.log('Clicked:', params.data)
+	}));
+
+	const gridOptions = {
+		columnDefs: [
+			{ field: 'name' },
+			{
+				field: 'action',
+				cellRenderer: ButtonRenderer
+			}
+		],
+		rowData: [
+			{ name: 'Item 1', action: 'Edit' },
+			{ name: 'Item 2', action: 'Delete' }
+		]
+	};
+</script>
+
+<AgGrid options={gridOptions} />
 ```
 
 ### Props Transformer
