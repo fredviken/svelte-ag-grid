@@ -41,9 +41,13 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^5.0.0"
+		"svelte": "^5.0.0",
+		"ag-grid-community": ">=28.0.0",
+		"@ag-grid-community/styles": ">=28.0.0"
 	},
 	"devDependencies": {
+		"@ag-grid-community/styles": "^32.3.5",
+		"ag-grid-community": "^33.3.2",
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.18.0",
 		"@sveltejs/adapter-auto": "^6.0.0",
@@ -83,8 +87,6 @@
 		]
 	},
 	"dependencies": {
-		"@ag-grid-community/styles": "^32.3.5",
-		"ag-grid-community": "^33.3.2",
 		"runed": "^0.29.0"
 	}
 }

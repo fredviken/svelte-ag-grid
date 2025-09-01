@@ -13,15 +13,15 @@ A reactive Svelte 5 wrapper for [AG Grid](https://www.ag-grid.com/) with full Ty
 ## Installation
 
 ```bash
-npm install svelte-ag-grid ag-grid-community
+npm install svelte-ag-grid ag-grid-community @ag-grid-community/styles
 ```
 
 ```bash
-pnpm add svelte-ag-grid ag-grid-community
+pnpm add svelte-ag-grid ag-grid-community @ag-grid-community/styles
 ```
 
 ```bash
-bun add svelte-ag-grid ag-grid-community
+bun add svelte-ag-grid ag-grid-community @ag-grid-community/styles
 ```
 
 ## Usage
