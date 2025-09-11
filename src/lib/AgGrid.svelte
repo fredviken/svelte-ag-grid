@@ -11,26 +11,32 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { makeSvelteSnippetRenderer } from './SvelteCellRenderer.svelte.js';
 
-	type Props = HTMLAttributes<HTMLDivElement> & {
-		options: GridOptions<TData>;
-		params?: GridParams;
-		api?: GridApi<TData>;
-	} & {
-		[K in keyof TData]?: Snippet<[{ params: ICellRendererParams<TData, TData[K]> }]>;
-	};
+	type Props = HTMLAttributes<HTMLDivElement> &
+		GridOptions<TData> & {
+			params?: GridParams;
+			api?: GridApi<TData>;
+		} & {
+			[K in keyof TData]?: Snippet<[{ params: ICellRendererParams<TData, TData[K]> }]>;
+		};
 
-	let { options, params = {}, api = $bindable(), ...rest }: Props = $props();
+	let { params = {}, api = $bindable(), class: className, style, ...gridOptions }: Props = $props();
+
+	// Separate HTML attributes from GridOptions
+	const htmlAttributes = $derived(() => ({ class: className, style }));
 
 	let gridDiv: HTMLDivElement;
 
-	// Extract snippets from rest props - these are the field-named snippets
+	// Extract snippets from gridOptions - these are the field-named snippets
 	const snippets = $derived(() => {
 		const result: Record<string, Snippet> = {};
-		if (options.rowData && options.rowData.length > 0) {
-			const sampleRow = options.rowData[0];
+		if (gridOptions.rowData && gridOptions.rowData.length > 0) {
+			const sampleRow = gridOptions.rowData[0];
 			for (const key in sampleRow) {
-				if (key in rest && typeof rest[key as keyof typeof rest] === 'function') {
-					result[key] = rest[key as keyof typeof rest] as Snippet;
+				if (
+					key in gridOptions &&
+					typeof gridOptions[key as keyof typeof gridOptions] === 'function'
+				) {
+					result[key] = gridOptions[key as keyof typeof gridOptions] as Snippet;
 				}
 			}
 		}
@@ -39,9 +45,9 @@
 
 	// Update column definitions to use snippets
 	const enhancedOptions = $derived(() => {
-		if (!options.columnDefs) return options;
+		if (!gridOptions.columnDefs) return gridOptions;
 
-		const updatedColumnDefs = options.columnDefs.map((colDef) => {
+		const updatedColumnDefs = gridOptions.columnDefs.map((colDef: any) => {
 			if ('field' in colDef && colDef.field && snippets()[colDef.field]) {
 				return {
 					...colDef,
@@ -54,14 +60,14 @@
 		});
 
 		return {
-			...options,
+			...gridOptions,
 			columnDefs: updatedColumnDefs
 		};
 	});
 
 	// Watch for changes to specific reactive fields
 	watch(
-		() => options.rowData,
+		() => gridOptions.rowData,
 		(newRowData) => {
 			if (api && newRowData !== undefined) {
 				api.setGridOption('rowData', newRowData);
@@ -79,7 +85,7 @@
 	);
 
 	watch(
-		() => options.defaultColDef,
+		() => gridOptions.defaultColDef,
 		(newDefaultColDef) => {
 			if (api && newDefaultColDef !== undefined) {
 				api.setGridOption('defaultColDef', newDefaultColDef);
@@ -88,7 +94,7 @@
 	);
 
 	watch(
-		() => options.pagination,
+		() => gridOptions.pagination,
 		(newPagination) => {
 			if (api && newPagination !== undefined) {
 				api.setGridOption('pagination', newPagination);
@@ -97,7 +103,7 @@
 	);
 
 	watch(
-		() => options.paginationPageSize,
+		() => gridOptions.paginationPageSize,
 		(newPageSize) => {
 			if (api && newPageSize !== undefined) {
 				api.setGridOption('paginationPageSize', newPageSize);
@@ -117,4 +123,4 @@
 	});
 </script>
 
-<div bind:this={gridDiv} {...rest}></div>
+<div bind:this={gridDiv} {...htmlAttributes()}></div>

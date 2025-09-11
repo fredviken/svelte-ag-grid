@@ -31,25 +31,74 @@ bun add svelte-ag-grid ag-grid-community @ag-grid-community/styles
 ```html
 <script lang="ts">
 	import { AgGrid, ModuleRegistry, AllCommunityModule } from 'svelte-ag-grid';
-	import type { GridOptions } from 'svelte-ag-grid';
 
 	// Register AG Grid modules (required)
 	ModuleRegistry.registerModules([AllCommunityModule]);
 
-	const gridOptions: GridOptions = {
-		rowData: [
-			{ make: 'Toyota', model: 'Celica', price: 35000 },
-			{ make: 'Ford', model: 'Mondeo', price: 32000 },
-			{ make: 'Porsche', model: 'Boxster', price: 72000 }
-		],
-		columnDefs: [{ field: 'make' }, { field: 'model' }, { field: 'price' }]
-	};
+	const rowData = [
+		{ make: 'Toyota', model: 'Celica', price: 35000 },
+		{ make: 'Ford', model: 'Mondeo', price: 32000 },
+		{ make: 'Porsche', model: 'Boxster', price: 72000 }
+	];
+
+	const columnDefs = [
+		{ field: 'make' }, 
+		{ field: 'model' }, 
+		{ field: 'price' }
+	];
 </script>
 
 <div style="height: 400px;">
-	<AgGrid options={gridOptions} />
+	<!-- Direct props (recommended) -->
+	<AgGrid {rowData} {columnDefs} />
+	
+	<!-- Or spread an options object -->
+	<!-- <AgGrid {...gridOptions} /> -->
 </div>
 ```
+
+### Prop Options
+
+The AgGrid component accepts props in three flexible ways:
+
+#### 1. Direct Props (Recommended)
+
+```html
+<AgGrid 
+	rowData={myData} 
+	columnDefs={columns}
+	pagination={true}
+	paginationPageSize={20}
+	defaultColDef={{ sortable: true }}
+/>
+```
+
+#### 2. Spread Options Object
+
+```html
+<script lang="ts">
+	const gridOptions = {
+		rowData: myData,
+		columnDefs: columns,
+		pagination: true,
+		paginationPageSize: 20
+	};
+</script>
+
+<AgGrid {...gridOptions} />
+```
+
+#### 3. Mixed Approach
+
+```html
+<AgGrid 
+	{...baseGridOptions} 
+	rowData={dynamicData}
+	pagination={showPagination}
+/>
+```
+
+**Note:** Direct props take precedence over spread options when both are provided.
 
 ### Module Registration
 
@@ -85,7 +134,7 @@ ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
 	};
 </script>
 
-<AgGrid options={gridOptions} {params} />
+<AgGrid rowData={data} columnDefs={cols} {params} />
 ```
 
 ### Reactive Updates
@@ -111,10 +160,92 @@ The component automatically watches and updates these properties:
 
 ### Component Props
 
-| Prop      | Type          | Default  | Description                  |
-| --------- | ------------- | -------- | ---------------------------- |
-| `options` | `GridOptions` | required | AG Grid configuration object |
-| `params`  | `GridParams`  | `{}`     | Grid creation parameters     |
+The AgGrid component accepts all AG Grid options as direct props, plus:
+
+| Prop     | Type         | Default | Description              |
+| -------- | ------------ | ------- | ------------------------ |
+| `params` | `GridParams` | `{}`    | Grid creation parameters |
+| `api`    | `GridApi`    | -       | Bindable grid API        |
+
+All AG Grid options can be passed as props (e.g., `rowData`, `columnDefs`, `pagination`, etc.)
+
+#### TypeScript Support
+
+All AG Grid options are available as properly typed props. For wrapper components, you have two type options:
+
+**Option 1: Clean Types (No Snippets)**
+```typescript
+import type { AgGridProps } from 'svelte-ag-grid';
+
+// Simple wrapper without snippet support
+interface MyGridProps<T> extends Partial<AgGridProps<T>> {
+	data: T[];
+	title?: string;
+}
+```
+
+**Option 2: Full Types (With Snippets)**
+```typescript
+import type { AgGridPropsWithSnippets } from 'svelte-ag-grid';
+
+// Wrapper that supports snippet pass-through
+interface MyGridProps<T> extends Partial<AgGridPropsWithSnippets<T>> {
+	data: T[];
+	title?: string;
+}
+```
+
+Example wrapper with snippet support:
+```html
+<!-- MyGrid.svelte -->
+<script lang="ts" generics="T">
+	import { AgGrid, type AgGridPropsWithSnippets } from 'svelte-ag-grid';
+	
+	interface Props extends Partial<AgGridPropsWithSnippets<T>> {
+		data: T[];
+		title?: string;
+	}
+	
+	let { data, title, ...gridProps }: Props = $props();
+	
+	const defaults = {
+		pagination: true,
+		paginationPageSize: 20,
+		defaultColDef: { sortable: true, filter: true }
+	};
+</script>
+
+<h2>{title}</h2>
+<AgGrid {...defaults} {...gridProps} rowData={data}>
+	{@render children?.()}
+</AgGrid>
+```
+
+Then use with snippets:
+```html
+<MyGrid {data} title="My Data" columnDefs={cols}>
+	{#snippet score(props)}
+		<span class="score">{props.params.value}</span>
+	{/snippet}
+	{#snippet name(props)}
+		<strong>{props.params.value}</strong>
+	{/snippet}
+</MyGrid>
+```
+
+#### Prop Precedence
+
+When using both spread syntax and direct props:
+
+```html
+<AgGrid 
+	{...baseOptions}        <!-- Applied first -->
+	rowData={dynamicData}   <!-- Overrides baseOptions.rowData -->
+	pagination={true}       <!-- Overrides baseOptions.pagination -->
+/>
+```
+
+Direct props take precedence over spread options, allowing you to override specific values while keeping defaults.
 
 ## Svelte Cell Renderers
 
@@ -136,23 +267,22 @@ The easiest and most powerful way is to use **inline snippets** directly inside 
 		status: 'active' | 'inactive';
 	}
 
-	const gridOptions: GridOptions<Person> = {
-		columnDefs: [
-			{ field: 'name', headerName: 'Name' },
-			{ field: 'age', headerName: 'Age' },
-			{ field: 'score', headerName: 'Score' }, // Will use score snippet
-			{ field: 'status', headerName: 'Status' } // Will use status snippet
-		],
-		rowData: [
-			{ name: 'Alice', age: 25, score: 95, status: 'active' },
-			{ name: 'Bob', age: 30, score: 87, status: 'inactive' },
-			{ name: 'Charlie', age: 35, score: 92, status: 'active' }
-		]
-	};
+	const columnDefs = [
+		{ field: 'name', headerName: 'Name' },
+		{ field: 'age', headerName: 'Age' },
+		{ field: 'score', headerName: 'Score' }, // Will use score snippet
+		{ field: 'status', headerName: 'Status' } // Will use status snippet
+	];
+
+	const rowData: Person[] = [
+		{ name: 'Alice', age: 25, score: 95, status: 'active' },
+		{ name: 'Bob', age: 30, score: 87, status: 'inactive' },
+		{ name: 'Charlie', age: 35, score: 92, status: 'active' }
+	];
 </script>
 
 <div style="height: 400px;">
-	<AgGrid options={gridOptions}>
+	<AgGrid {rowData} {columnDefs}>
 		<!-- Snippet name must match column field name -->
 		{#snippet score(props)}
 		<div class="score-cell">
@@ -242,21 +372,20 @@ Use `makeSvelteSnippetRenderer` for snippets defined outside the grid:
 <script lang="ts">
 	import { AgGrid, makeSvelteSnippetRenderer } from 'svelte-ag-grid';
 
-	const gridOptions = {
-		columnDefs: [
-			{ field: 'name' },
-			{
-				field: 'price',
-				cellRenderer: makeSvelteSnippetRenderer(priceCell, (params) => ({
-					price: params.value
-				}))
-			}
-		],
-		rowData: [
-			{ name: 'Product A', price: 99.99 },
-			{ name: 'Product B', price: 149.99 }
-		]
-	};
+	const columnDefs = [
+		{ field: 'name' },
+		{
+			field: 'price',
+			cellRenderer: makeSvelteSnippetRenderer(priceCell, (params) => ({
+				price: params.value
+			}))
+		}
+	];
+
+	const rowData = [
+		{ name: 'Product A', price: 99.99 },
+		{ name: 'Product B', price: 149.99 }
+	];
 </script>
 
 {#snippet priceCell(params: { price: number })}
@@ -265,7 +394,7 @@ Use `makeSvelteSnippetRenderer` for snippets defined outside the grid:
 </span>
 {/snippet}
 
-<AgGrid options={gridOptions} />
+<AgGrid {rowData} {columnDefs} />
 ```
 
 ### Component Renderer
@@ -282,22 +411,21 @@ Use `makeSvelteCellRenderer` for reusable Svelte components:
 		onclick: () => console.log('Clicked:', params.data)
 	}));
 
-	const gridOptions = {
-		columnDefs: [
-			{ field: 'name' },
-			{
-				field: 'action',
-				cellRenderer: ButtonRenderer
-			}
-		],
-		rowData: [
-			{ name: 'Item 1', action: 'Edit' },
-			{ name: 'Item 2', action: 'Delete' }
-		]
-	};
+	const columnDefs = [
+		{ field: 'name' },
+		{
+			field: 'action',
+			cellRenderer: ButtonRenderer
+		}
+	];
+
+	const rowData = [
+		{ name: 'Item 1', action: 'Edit' },
+		{ name: 'Item 2', action: 'Delete' }
+	];
 </script>
 
-<AgGrid options={gridOptions} />
+<AgGrid {rowData} {columnDefs} />
 ```
 
 ### Props Transformer

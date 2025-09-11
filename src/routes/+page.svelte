@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { AgGrid } from '$lib/index.js';
+	import { AgGrid, ModuleRegistry, AllCommunityModule } from '$lib/index.js';
 	import type { GridOptions } from 'ag-grid-community';
-	import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
-	import { onMount, onDestroy } from 'svelte';
 
 	// Register all community features
 	ModuleRegistry.registerModules([AllCommunityModule]);
@@ -90,16 +88,6 @@
 			people = people.slice(0, -1);
 		}
 	}
-
-	// Auto-update scores every 2 seconds
-	let interval: number;
-	onMount(() => {
-		interval = setInterval(updateRandomScore, 2000);
-	});
-
-	onDestroy(() => {
-		if (interval) clearInterval(interval);
-	});
 </script>
 
 <div class="container">
@@ -120,21 +108,21 @@
 	</div>
 
 	<div class="grid-container">
-		<AgGrid options={gridOptions}>
+		<AgGrid {...gridOptions}>
 			<!-- Inline snippets automatically map to column fields -->
 			{#snippet score(props)}
 				<div class="score-cell">
 					<span
-						class="score-value {(props.params.value ?? 0) >= 90
+						class="score-value {((props.params.value as number) ?? 0) >= 90
 							? 'excellent'
-							: (props.params.value ?? 0) >= 80
+							: ((props.params.value as number) ?? 0) >= 80
 								? 'good'
 								: 'okay'}"
 					>
 						{props.params.value ?? 0}
 					</span>
 					<div class="score-bar">
-						<div class="score-fill" style="width: {props.params.value ?? 0}%"></div>
+						<div class="score-fill" style="width: {(props.params.value as number) ?? 0}%"></div>
 					</div>
 				</div>
 			{/snippet}
@@ -167,72 +155,87 @@
 	<div class="controls">
 		<button onclick={addPerson}>Add Person</button>
 		<button onclick={updateRandomScore}>Update Random Score</button>
-		<button onclick={removePerson} disabled={people.length <= 1}>Remove Person</button>
+		<button onclick={removePerson}>Remove Last Person</button>
 	</div>
 </div>
 
 <style>
+	:global(body) {
+		margin: 0;
+		padding: 1rem;
+		background-color: #f8fafc;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	}
+
 	.container {
-		padding: 2rem;
-		max-width: 800px;
+		max-width: 1200px;
 		margin: 0 auto;
+		background: white;
+		border-radius: 8px;
+		padding: 2rem;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 	}
 
 	h1 {
+		color: #1e293b;
 		margin-bottom: 0.5rem;
 	}
 
 	p {
-		margin-bottom: 2rem;
-		color: #666;
+		color: #64748b;
+		margin-bottom: 1.5rem;
 	}
 
 	.stats {
 		display: flex;
 		gap: 2rem;
-		margin-bottom: 1rem;
+		margin-bottom: 1.5rem;
+		padding: 1rem;
+		background-color: #f1f5f9;
+		border-radius: 6px;
 		font-weight: 500;
-		color: #333;
+		color: #475569;
 	}
 
 	.grid-container {
-		margin-bottom: 1rem;
+		margin-bottom: 1.5rem;
+		border: 1px solid #e2e8f0;
+		border-radius: 6px;
+		overflow: hidden;
 	}
 
 	.controls {
 		display: flex;
 		gap: 1rem;
+		flex-wrap: wrap;
 	}
 
 	button {
 		padding: 0.5rem 1rem;
-		border: 1px solid #ddd;
+		background-color: #3b82f6;
+		color: white;
+		border: none;
 		border-radius: 4px;
-		background: white;
 		cursor: pointer;
-		transition: background 0.2s;
+		font-weight: 500;
+		transition: background-color 0.2s;
 	}
 
-	button:hover:not(:disabled) {
-		background: #f5f5f5;
+	button:hover {
+		background-color: #2563eb;
 	}
 
-	button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	/* Score cell styles */
+	/* Global styles for AG Grid cell renderers */
 	:global(.score-cell) {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.25rem 0;
+		gap: 0.75rem;
+		padding: 0.25rem;
 	}
 
 	:global(.score-value) {
-		font-weight: 600;
 		min-width: 2rem;
+		font-weight: 600;
 	}
 
 	:global(.score-value.excellent) {
@@ -249,9 +252,9 @@
 
 	:global(.score-bar) {
 		flex: 1;
-		height: 4px;
+		height: 6px;
 		background-color: #e5e7eb;
-		border-radius: 2px;
+		border-radius: 3px;
 		overflow: hidden;
 	}
 
@@ -261,10 +264,9 @@
 		transition: width 0.3s ease;
 	}
 
-	/* Status badge styles */
 	:global(.status-badge) {
-		padding: 0.25rem 0.5rem;
-		border-radius: 0.25rem;
+		padding: 0.25rem 0.75rem;
+		border-radius: 9999px;
 		font-size: 0.75rem;
 		font-weight: 600;
 		text-transform: uppercase;
@@ -286,15 +288,18 @@
 		color: #92400e;
 	}
 
-	/* Department tag styles */
 	:global(.department-tag) {
 		display: flex;
 		align-items: center;
-		gap: 0.375rem;
-		font-size: 0.875rem;
+		gap: 0.5rem;
+		padding: 0.25rem 0.75rem;
+		background-color: #f8fafc;
+		border-radius: 6px;
+		font-weight: 500;
+		color: #475569;
 	}
 
 	:global(.dept-icon) {
-		font-size: 1rem;
+		font-size: 1.1em;
 	}
 </style>
