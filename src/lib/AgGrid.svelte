@@ -25,6 +25,11 @@
 	const htmlAttributes = $derived(() => ({ class: className, style }));
 
 	let gridDiv: HTMLDivElement;
+	let internalApi: GridApi<TData> | undefined = $state(undefined);
+
+	$effect(() => {
+		api = internalApi;
+	});
 
 	// Extract snippets from gridOptions - these are the field-named snippets
 	const snippets = $derived(() => {
@@ -43,11 +48,24 @@
 		return result;
 	});
 
-	// Update column definitions to use snippets
-	const enhancedOptions = $derived(() => {
-		if (!gridOptions.columnDefs) return gridOptions;
+	// Filter out snippets and create clean grid options
+	const cleanGridOptions = $derived.by(() => {
+		const clean = { ...gridOptions };
+		const snippetKeys = Object.keys(snippets());
 
-		const updatedColumnDefs = gridOptions.columnDefs.map((colDef: any) => {
+		// Remove snippet functions from grid options to avoid AG Grid warnings
+		for (const key of snippetKeys) {
+			delete clean[key as keyof typeof clean];
+		}
+
+		return clean;
+	});
+
+	// Update column definitions to use snippets
+	const enhancedOptions = $derived.by(() => {
+		if (!cleanGridOptions.columnDefs) return cleanGridOptions;
+
+		const updatedColumnDefs = cleanGridOptions.columnDefs.map((colDef) => {
 			if ('field' in colDef && colDef.field && snippets()[colDef.field]) {
 				return {
 					...colDef,
@@ -60,67 +78,66 @@
 		});
 
 		return {
-			...gridOptions,
+			...cleanGridOptions,
 			columnDefs: updatedColumnDefs
 		};
+	});
+	onMount(() => {
+		internalApi = createGrid(gridDiv, enhancedOptions, params);
+	});
+
+	onDestroy(() => {
+		if (internalApi) {
+			internalApi.destroy();
+		}
+		internalApi = undefined;
 	});
 
 	// Watch for changes to specific reactive fields
 	watch(
-		() => gridOptions.rowData,
+		() => cleanGridOptions.rowData,
 		(newRowData) => {
-			if (api && newRowData !== undefined) {
-				api.setGridOption('rowData', newRowData);
+			if (internalApi && newRowData !== undefined) {
+				internalApi.setGridOption('rowData', newRowData);
 			}
 		}
 	);
 
 	watch(
-		() => enhancedOptions().columnDefs,
+		() => enhancedOptions.columnDefs,
 		(newColumnDefs) => {
-			if (api && newColumnDefs !== undefined) {
-				api.setGridOption('columnDefs', newColumnDefs);
+			if (internalApi && newColumnDefs !== undefined) {
+				internalApi.setGridOption('columnDefs', newColumnDefs);
 			}
 		}
 	);
 
 	watch(
-		() => gridOptions.defaultColDef,
+		() => cleanGridOptions.defaultColDef,
 		(newDefaultColDef) => {
-			if (api && newDefaultColDef !== undefined) {
-				api.setGridOption('defaultColDef', newDefaultColDef);
+			if (internalApi && newDefaultColDef !== undefined) {
+				internalApi.setGridOption('defaultColDef', newDefaultColDef);
 			}
 		}
 	);
 
 	watch(
-		() => gridOptions.pagination,
+		() => cleanGridOptions.pagination,
 		(newPagination) => {
-			if (api && newPagination !== undefined) {
-				api.setGridOption('pagination', newPagination);
+			if (internalApi && newPagination !== undefined) {
+				internalApi.setGridOption('pagination', newPagination);
 			}
 		}
 	);
 
 	watch(
-		() => gridOptions.paginationPageSize,
+		() => cleanGridOptions.paginationPageSize,
 		(newPageSize) => {
-			if (api && newPageSize !== undefined) {
-				api.setGridOption('paginationPageSize', newPageSize);
+			if (internalApi && newPageSize !== undefined) {
+				internalApi.setGridOption('paginationPageSize', newPageSize);
 			}
 		}
 	);
-
-	onMount(() => {
-		api = createGrid(gridDiv, enhancedOptions(), params);
-	});
-
-	onDestroy(() => {
-		if (api) {
-			api.destroy();
-		}
-		api = undefined;
-	});
 </script>
 
 <div bind:this={gridDiv} {...htmlAttributes()}></div>
