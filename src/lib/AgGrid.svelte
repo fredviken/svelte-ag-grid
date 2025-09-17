@@ -17,7 +17,7 @@
 			api?: GridApi<TData>;
 		} & {
 			[K in keyof TData]?: Snippet<[{ params: ICellRendererParams<TData, TData[K]> }]>;
-		};
+		} & Record<string, unknown>;
 
 	let { params = {}, api = $bindable(), class: className, style, ...gridOptions }: Props = $props();
 
@@ -31,10 +31,12 @@
 		api = internalApi;
 	});
 
-	// Extract snippets from gridOptions - these are the field-named snippets
+	// Extract snippets from gridOptions - these are the field-named snippets and colId snippets
 	const snippets = $derived(() => {
 		const result: Record<string, Snippet> = {};
-		if (gridOptions.rowData && gridOptions.rowData.length > 0) {
+
+		// Check for field-based snippets
+		if (Array.isArray(gridOptions.rowData) && gridOptions.rowData.length > 0) {
 			const sampleRow = gridOptions.rowData[0];
 			for (const key in sampleRow) {
 				if (
@@ -45,6 +47,34 @@
 				}
 			}
 		}
+
+		// Also check for colId snippets (any remaining function props not caught above)
+		const knownGridOptions = new Set([
+			'rowData',
+			'columnDefs',
+			'defaultColDef',
+			'pagination',
+			'paginationPageSize',
+			'onGridReady',
+			'onCellClicked',
+			'onRowClicked',
+			'onSelectionChanged',
+			'getRowId',
+			'isRowSelectable',
+			'rowClassRules',
+			'getRowClass'
+		]);
+
+		for (const key in gridOptions) {
+			if (
+				typeof gridOptions[key as keyof typeof gridOptions] === 'function' &&
+				!result[key] &&
+				!knownGridOptions.has(key)
+			) {
+				result[key] = gridOptions[key as keyof typeof gridOptions] as Snippet;
+			}
+		}
+
 		return result;
 	});
 
@@ -58,7 +88,7 @@
 			delete clean[key as keyof typeof clean];
 		}
 
-		return clean;
+		return clean as GridOptions<TData>;
 	});
 
 	// Update column definitions to use snippets

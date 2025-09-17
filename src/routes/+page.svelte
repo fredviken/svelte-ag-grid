@@ -41,7 +41,8 @@
 		{ field: 'age' as const, headerName: 'Age', width: 80 },
 		{ field: 'department' as const, headerName: 'Department', width: 120 },
 		{ field: 'score' as const, headerName: 'Score', width: 200 },
-		{ field: 'status' as const, headerName: 'Status', width: 120 }
+		{ field: 'status' as const, headerName: 'Status', width: 120 },
+		{ colId: 'actions' as const, headerName: 'Actions', width: 120, sortable: false, filter: false }
 	];
 
 	let gridOptions: GridOptions<Person> = $derived({
@@ -147,6 +148,36 @@
 										: '👥'}
 					</span>
 					{props.params.value}
+				</div>
+			{/snippet}
+
+			{#snippet actions(props)}
+				<div class="action-buttons">
+					<button
+						class="action-btn edit-btn"
+						onclick={() => {
+							const person = props.params.data;
+							if (person) {
+								person.score = Math.min(100, person.score + 5);
+								people = [...people];
+							}
+						}}
+						title="Boost Score"
+					>
+						⬆️
+					</button>
+					<button
+						class="action-btn delete-btn"
+						onclick={() => {
+							const person = props.params.data;
+							if (person) {
+								people = people.filter((p) => p.id !== person.id);
+							}
+						}}
+						title="Remove Person"
+					>
+						🗑️
+					</button>
 				</div>
 			{/snippet}
 		</AgGrid>
@@ -301,5 +332,43 @@
 
 	:global(.dept-icon) {
 		font-size: 1.1em;
+	}
+
+	:global(.action-buttons) {
+		display: flex;
+		gap: 0.5rem;
+		justify-content: center;
+	}
+
+	:global(.action-btn) {
+		padding: 0.25rem 0.5rem;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.9rem;
+		transition: all 0.2s;
+		min-width: 2rem;
+	}
+
+	:global(.action-btn:hover) {
+		transform: scale(1.1);
+	}
+
+	:global(.edit-btn) {
+		background-color: #e0f2fe;
+		color: #0277bd;
+	}
+
+	:global(.edit-btn:hover) {
+		background-color: #b3e5fc;
+	}
+
+	:global(.delete-btn) {
+		background-color: #ffebee;
+		color: #d32f2f;
+	}
+
+	:global(.delete-btn:hover) {
+		background-color: #ffcdd2;
 	}
 </style>
