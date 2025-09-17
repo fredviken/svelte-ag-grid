@@ -66,10 +66,13 @@
 		if (!cleanGridOptions.columnDefs) return cleanGridOptions;
 
 		const updatedColumnDefs = cleanGridOptions.columnDefs.map((colDef) => {
-			if ('field' in colDef && colDef.field && snippets()[colDef.field]) {
+			// Check for field first, then colId as fallback
+			const snippetKey = ('field' in colDef && colDef.field) || ('colId' in colDef && colDef.colId);
+
+			if (snippetKey && snippets()[snippetKey]) {
 				return {
 					...colDef,
-					cellRenderer: makeSvelteSnippetRenderer(snippets()[colDef.field], (params) => ({
+					cellRenderer: makeSvelteSnippetRenderer(snippets()[snippetKey], (params) => ({
 						params
 					}))
 				};
